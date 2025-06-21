@@ -11,7 +11,7 @@ API_ENDPOINT = os.getenv("Llama_API_ENDPOINT")
 
 def call_llama_api(prompt: str, context: dict) -> str:
     """
-    Sends a request to the Llama 4 API and returns the generated text.
+    Sends a request to the Meta Llama API and returns the generated text.
 
     Args:
         prompt: The main instruction or question for the model.
@@ -21,17 +21,18 @@ def call_llama_api(prompt: str, context: dict) -> str:
         The text content of the model's response, or an error message.
     """
     if not API_KEY or not API_ENDPOINT:
-        return "Error: API key or endpoint not configured. Please check your .env file."
+        # Return mock response for testing if API key or endpoint is not set
+        print("--- Warning: API key or endpoint not set. Running in mock response mode. ---")
+        return get_mock_response(prompt)
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
     }
 
-    # Llama 4 models often use a structured message format.
-    # The 'system' message sets the context, and the 'user' message provides the prompt.
+    # Meta Llama API official format
     payload = {
-        "model": "llama-4-turbo", # Or whichever specific model you are using
+        "model": "llama-4-maverick",  # Model name based on official documentation
         "messages": [
             {
                 "role": "system",
@@ -42,21 +43,42 @@ def call_llama_api(prompt: str, context: dict) -> str:
                 "content": prompt
             }
         ],
-        "max_tokens": 500, # Adjust as needed
-        "temperature": 0.7 # Adjust for creativity vs. coherence
+        "max_tokens": 500,
+        "temperature": 0.7,
     }
 
     try:
         response = requests.post(API_ENDPOINT, headers=headers, json=payload)
-        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()  # Raise exception for 4xx or 5xx status codes
         
         data = response.json()
-        # The exact path to the content might vary based on the API provider's response structure
         return data['choices'][0]['message']['content'].strip()
 
     except requests.exceptions.RequestException as e:
-        print(f"Error calling Llama 4 API: {e}")
-        return f"Error: Could not connect to the Llama 4 API. Details: {e}"
+        print(f"Error calling Llama API: {e}")
+        return f"Error: Could not connect to the Llama API. Details: {e}"
     except (KeyError, IndexError) as e:
         print(f"Error parsing API response: {e}")
-        return f"Error: Unexpected response format from the API. Details: {e}" 
+        return f"Error: Unexpected response format from the API. Details: {e}"
+
+def get_mock_response(prompt: str) -> str:
+    """Returns a mock response for testing purposes."""
+    prompt_lower = prompt.lower()
+    
+    if "walk over" in prompt_lower or "approach" in prompt_lower:
+        return "As you approach the mysterious figure, they slowly raise their hood to reveal weathered features and piercing blue eyes. 'I've been waiting for you,' they whisper in a gravelly voice. 'The time has come to begin your quest.' They reach into their cloak and produce an ancient map. What would you like to do next?"
+    
+    elif "talk" in prompt_lower or "speak" in prompt_lower:
+        return "The figure nods approvingly at your choice to engage in conversation. 'I am Gandalf the Grey,' they introduce themselves. 'I have been watching your journey from afar. You possess a rare gift that could change the fate of Middle-earth.' They gesture toward the map. 'Will you accept this quest?'"
+    
+    elif "accept" in prompt_lower or "yes" in prompt_lower:
+        return "A warm smile spreads across Gandalf's face. 'Excellent! Your courage does you credit.' He hands you the map and a small silver ring. 'This ring will guide you when all other lights go out. Your journey begins at dawn. Rest well tonight, for tomorrow you face the unknown.'"
+    
+    elif "refuse" in prompt_lower or "no" in prompt_lower:
+        return "Gandalf's expression darkens with concern. 'I understand your hesitation, but the choice is not mine to make. The forces of darkness are already moving. Whether you accept or not, the shadow will find you.' He places the map on the table. 'The choice remains yours.'"
+    
+    elif "ask" in prompt_lower or "question" in prompt_lower:
+        return "Gandalf leans forward, his eyes twinkling with ancient wisdom. 'Ask what you will, young one. I have traveled far and seen much. Perhaps I can provide the answers you seek before you make your decision.'"
+    
+    else:
+        return "The mysterious figure watches you carefully, waiting for your next move. The dim light of the inn flickers, casting dancing shadows across their weathered face. What would you like to do?" 
