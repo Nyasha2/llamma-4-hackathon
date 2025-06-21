@@ -26,24 +26,20 @@ def call_llama_api(prompt: str, context: dict) -> str:
         return get_mock_response(prompt)
 
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
+        "Authorization": f"Bearer {API_KEY}",
     }
 
     # Meta Llama API official format
     payload = {
-        "model": "llama-4-maverick",  # Model name based on official documentation
+        "model": "Llama-4-Maverick-17B-128E-Instruct-FP8",
         "messages": [
             {
-                "role": "system",
-                "content": f"You are a master storyteller and game master. Use the provided knowledge graph and game state to continue the story. Here is the context: {json.dumps(context)}"
-            },
-            {
                 "role": "user",
-                "content": prompt
+                "content": f"You are a master storyteller and game master. Use the provided knowledge graph and game state to continue the story. Here is the context: {json.dumps(context)}\n\n{prompt}",
             }
         ],
-        "max_tokens": 500,
+        "max_completion_tokens": 1024,
         "temperature": 0.7,
     }
 
@@ -52,7 +48,25 @@ def call_llama_api(prompt: str, context: dict) -> str:
         response.raise_for_status()  # Raise exception for 4xx or 5xx status codes
         
         data = response.json()
-        return data['choices'][0]['message']['content'].strip()
+        
+        # Handle the new response format with completion_message and metrics
+        if 'completion_message' in data and 'content' in data['completion_message']:
+            content = data['completion_message']['content']
+            
+            # Handle content that can be either a string or an object with 'text' field
+            if isinstance(content, dict) and 'text' in content:
+                return content['text'].strip()
+            elif isinstance(content, str):
+                return content.strip()
+            else:
+                return f"Error: Unexpected content format in completion_message: {content}"
+        
+        # Fallback to the old format for backward compatibility
+        elif 'choices' in data and len(data['choices']) > 0:
+            return data['choices'][0]['message']['content'].strip()
+        
+        else:
+            return f"Error: Unexpected response format. Response: {data}"
 
     except requests.exceptions.RequestException as e:
         print(f"Error calling Llama API: {e}")
