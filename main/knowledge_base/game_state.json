@@ -1,0 +1,12 @@
+{
+  "player_character": {
+    "name": "Player",
+    "location": "The Prancing Pony Inn",
+    "inventory": ["A rusty key", "10 gold pieces"]
+  },
+  "conversation_history": [
+    "Narrator: You find yourself in the dimly lit common room of the Prancing Pony Inn. A mysterious figure in the corner beckons you over. What do you do?",
+    "Player: I walk over to the mysterious figure."
+  ],
+  "world_events_unlocked": []
+} 
