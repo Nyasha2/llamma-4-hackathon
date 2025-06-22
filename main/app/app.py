@@ -1,32 +1,40 @@
 from flask import Flask, render_template, request, jsonify
-import sys
 import os
+from dotenv import load_dotenv
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-# Add the project root to the Python path to allow for imports from src
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from llm_interface.llama_api import LlamaAPI
 
-from src.game_engine.main_game_loop import process_player_action, start_game
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 
+# Initialize Llama API
+llama_api = LlamaAPI()
+
 @app.route('/')
 def index():
-    """Render the main game page."""
-    opening_message = start_game()
-    return render_template('index.html', opening_message=opening_message)
+    return render_template('index.html')
 
-@app.route('/play', methods=['POST'])
-def play():
-    """Handle the player's action."""
-    data = request.get_json()
-    player_action = data.get('action')
-
-    if not player_action:
-        return jsonify({'error': 'No action provided.'}), 400
-
-    narrative = process_player_action(player_action)
-    
-    return jsonify({'narrative': narrative})
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return jsonify({'error': 'Message is empty.'}), 400
+        
+        # Get response from Llama API
+        response = llama_api.get_response(user_message)
+        
+        return jsonify({'response': response})
+        
+    except Exception as e:
+        print(f"Error in chat endpoint: {e}")
+        return jsonify({'error': 'Server error occurred.'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, host='0.0.0.0', port=5001) 

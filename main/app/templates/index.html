@@ -3,63 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Literary Game</title>
+    <title>Project Chimera: Harry Potter World Engine</title>
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 2rem; }
-        .container { max-width: 800px; margin: auto; background-color: #1e1e1e; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        h1 { text-align: center; color: #bb86fc; }
-        #story-display { height: 400px; overflow-y: scroll; border: 1px solid #333; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; background-color: #2c2c2c; }
-        #story-display p { margin: 0 0 1rem 0; }
-        #player-input { display: flex; }
-        #action-input { flex-grow: 1; padding: 0.75rem; border: 1px solid #333; border-radius: 4px; background-color: #2c2c2c; color: #e0e0e0; }
-        #submit-btn { padding: 0.75rem 1.5rem; border: none; background-color: #6200ee; color: white; border-radius: 4px; margin-left: 1rem; cursor: pointer; }
-        #submit-btn:hover { background-color: #3700b3; }
-        #submit-btn:disabled { background-color: #333; cursor: not-allowed; }
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #4a90e2;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4a90e2;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            color: #4a90e2;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        }
+        
+        .subtitle {
+            color: #b8b8b8;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .world-status {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid #4a90e2;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .world-status h3 {
+            color: #4a90e2;
+            margin: 0 0 10px 0;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .status-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 5px;
+            border-left: 3px solid #4a90e2;
+        }
+        
+        #chat-display {
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #4a90e2;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background: rgba(15, 52, 96, 0.3);
+            line-height: 1.6;
+        }
+        
+        #chat-display p {
+            margin: 0 0 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .bot-message {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border-left: 4px solid #2c3e50;
+            box-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+        }
+        
+        .user-message {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8e8e8;
+            border-left: 4px solid #e74c3c;
+            margin-left: 20px;
+        }
+        
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+        
+        #chat-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        #message-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #4a90e2;
+            border-radius: 25px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: rgba(15, 52, 96, 0.5);
+            color: #e8e8e8;
+        }
+        
+        #message-input:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+            background: rgba(15, 52, 96, 0.8);
+        }
+        
+        #message-input::placeholder {
+            color: #b8b8b8;
+        }
+        
+        #send-btn {
+            padding: 15px 30px;
+            border: none;
+            background: linear-gradient(45deg, #4a90e2, #e74c3c);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 120px;
+        }
+        
+        #send-btn:hover {
+            background: linear-gradient(45deg, #e74c3c, #4a90e2);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(74, 144, 226, 0.4);
+        }
+        
+        #send-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .capabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .capability {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid #4a90e2;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+        
+        .capability-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            #chat-display {
+                height: 300px;
+            }
+            
+            #chat-form {
+                flex-direction: column;
+            }
+            
+            #message-input {
+                width: 100%;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>AI Literary Game</h1>
-        <div id="story-display">
-            <p><strong>Narrator:</strong> {{ opening_message }}</p>
-        </div>
-        <form id="player-input-form">
-            <div id="player-input">
-                <input type="text" id="action-input" placeholder="What do you do?" autocomplete="off">
-                <button type="submit" id="submit-btn">Send</button>
+        <div class="header">
+            <h1>🧠 Project Chimera: Genesis Engine</h1>
+            <p class="subtitle">AI-Powered Harry Potter Worldbuilding & Living Codex</p>
+            
+            <div class="capabilities">
+                <div class="capability">
+                    <div class="capability-icon">🧠</div>
+                    <div>World Anvil</div>
+                </div>
+                <div class="capability">
+                    <div class="capability-icon">🧩</div>
+                    <div>Entity Forge</div>
+                </div>
+                <div class="capability">
+                    <div class="capability-icon">📚</div>
+                    <div>Living Codex</div>
+                </div>
+                <div class="capability">
+                    <div class="capability-icon">🌊</div>
+                    <div>Ripple Engine</div>
+                </div>
+                <div class="capability">
+                    <div class="capability-icon">🔮</div>
+                    <div>Oracle Interface</div>
+                </div>
+                <div class="capability">
+                    <div class="capability-icon">🎭</div>
+                    <div>Scenario Synthesizer</div>
+                </div>
             </div>
+        </div>
+        
+        <div class="world-status">
+            <h3>🌍 Current World State</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <strong>Timeline:</strong> Year 1 at Hogwarts
+                </div>
+                <div class="status-item">
+                    <strong>Active Locations:</strong> Hogwarts, Diagon Alley, Privet Drive
+                </div>
+                <div class="status-item">
+                    <strong>Major Events:</strong> Voldemort's defeat, Harry discovers magic
+                </div>
+                <div class="status-item">
+                    <strong>World Type:</strong> Fantasy/Magic
+                </div>
+            </div>
+        </div>
+        
+        <div id="chat-display">
+            <p class="bot-message">
+                <strong>🧠 Chimera Engine:</strong> Welcome to Project Chimera: Genesis Engine! I am your AI-powered narrative worldbuilding assistant, currently operating within the enchanting Harry Potter universe. 
+
+I can help you explore the magical world, answer "what if" scenarios, generate new storylines, analyze characters and their relationships, and much more. The living codex maintains the world state and tracks how your interactions ripple through the story.
+
+What would you like to explore in the wizarding world today? ✨
+            </p>
+        </div>
+        
+        <form id="chat-form">
+            <input type="text" id="message-input" placeholder="Ask about characters, explore the world, create scenarios..." autocomplete="off">
+            <button type="submit" id="send-btn">Send</button>
         </form>
     </div>
 
     <script>
-        document.getElementById('player-input-form').addEventListener('submit', async function(event) {
+        document.getElementById('chat-form').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const inputField = document.getElementById('action-input');
-            const submitButton = document.getElementById('submit-btn');
-            const storyDisplay = document.getElementById('story-display');
-            const playerAction = inputField.value.trim();
+            const inputField = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-btn');
+            const chatDisplay = document.getElementById('chat-display');
+            const message = inputField.value.trim();
 
-            if (!playerAction) return;
+            if (!message) return;
 
-            // Display player's action
-            const playerPara = document.createElement('p');
-            playerPara.innerHTML = `<strong>You:</strong> ${playerAction}`;
-            storyDisplay.appendChild(playerPara);
+            // Display user's message
+            const userPara = document.createElement('p');
+            userPara.className = 'user-message';
+            userPara.innerHTML = `<strong>You:</strong> ${message}`;
+            chatDisplay.appendChild(userPara);
 
             // Disable input and show loading state
             inputField.value = '';
             inputField.disabled = true;
-            submitButton.disabled = true;
-            submitButton.textContent = 'Thinking...';
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading"></span> Processing...';
             
-            storyDisplay.scrollTop = storyDisplay.scrollHeight;
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
             try {
-                const response = await fetch('/play', {
+                const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: playerAction })
+                    body: JSON.stringify({ message: message })
                 });
 
                 if (!response.ok) {
@@ -68,24 +330,31 @@
 
                 const data = await response.json();
 
-                // Display narrator's response
-                const narratorPara = document.createElement('p');
-                narratorPara.innerHTML = `<strong>Narrator:</strong> ${data.narrative}`;
-                storyDisplay.appendChild(narratorPara);
+                // Display bot's response
+                const botPara = document.createElement('p');
+                botPara.className = 'bot-message';
+                botPara.innerHTML = `<strong>🧠 Chimera Engine:</strong> ${data.response}`;
+                chatDisplay.appendChild(botPara);
 
             } catch (error) {
                 console.error('Error:', error);
                 const errorPara = document.createElement('p');
-                errorPara.innerHTML = '<strong>System:</strong> An error occurred. Please try again.';
-                storyDisplay.appendChild(errorPara);
+                errorPara.className = 'error-message';
+                errorPara.innerHTML = '<strong>Error:</strong> Unable to get response. Please try again.';
+                chatDisplay.appendChild(errorPara);
             } finally {
                 // Re-enable input
                 inputField.disabled = false;
-                submitButton.disabled = false;
-                submitButton.textContent = 'Send';
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
                 inputField.focus();
-                storyDisplay.scrollTop = storyDisplay.scrollHeight;
+                chatDisplay.scrollTop = chatDisplay.scrollHeight;
             }
+        });
+        
+        // Focus on input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('message-input').focus();
         });
     </script>
 </body>
